@@ -5,11 +5,9 @@ from uuid import uuid4
 
 class DB:
     def __init__(self, **kwargs):
-        self.dbname = kwargs.get["db"].split("/")[-1].split(".")[0]
-        self.session = sqlite3.connect(kwargs["db"])
-    
-    def __del__(self):
-        self.session.close()
+        self.dbname = kwargs["db"].split("/")[-1].split(".")[0]
+        self.session = sqlite3.connect(kwargs["db"], check_same_thread=False)
+        self.cursor = self.session.cursor()
 
     def __str__(self):
         return "<Database {"+self.dbname+"}>"
@@ -20,41 +18,38 @@ class DB:
         """
 
         if profileId is None: return None
-
-        cursor = self.session.cursor()
-        cursor.execute(f'''SELECT * 
-                           FROM profiles 
-                           WHERE profileId={profileId};''')
-        profileData = cursor.fetchone()
-        cursor.close()
-
-        if profileData is None: return None
-        else: return {
-            "avatar": profileData[0],
-            "skin": profileData[1],
-            "jdPoints": profileData[2],
-            "progression": loads(profileData[3]),
-            "history": loads(profileData[4]),
-            "favorites": loads(profileData[5]),
-            "unlockedAvatars": loads(profileData[6]),
-            "unlockedSkins": loads(profileData[7]),
-            "wdfRank": profileData[8],
-            "stars": profileData[9],
-            "unlocks": profileData[10],
-            "songsPlayed": profileData[11],
-            "name": profileData[12],
-            "nickname": profileData[13],
-            "platformId": profileData[14],
-            "country": profileData[15],
-            "scores": loads(profileData[16]),
-            "language": profileData[17],
-            "unlockedPortraitBorders": profileData[18],
-            "portraitBorder": profileData[19],
-            "syncVersions": loads(profileData[20]),
-            "otherPids": loads(profileData[21]),
-            "mapHistory": loads(profileData[22]),
-            "profileId": profileId[23]
-        }
+        with self.session:
+            self.cursor.execute(f'''SELECT *
+                                    FROM profiles;''')
+            profiles = self.cursor.fetchall()
+        for profile in profiles:
+            if profile[-1].replace("'","") == profileId: return {
+                "avatar": profile[0],
+                "skin": profile[1],
+                "jdPoints": profile[2],
+                "progression": loads(profile[3].replace("'","")),
+                "history": loads(profile[4].replace("'","")),
+                "favorites": loads(profile[5].replace("'","")),
+                "unlockedAvatars": loads(profile[6].replace("'","")),
+                "unlockedSkins": loads(profile[7].replace("'","")),
+                "wdfRank": profile[8],
+                "stars": profile[9],
+                "unlocks": profile[10],
+                "songsPlayed": profile[11],
+                "name": profile[12].replace("'",""),
+                "nickname": profile[13].replace("'",""),
+                "platformId": profile[14].replace("'",""),
+                "country": profile[15],
+                "scores": loads(profile[16].replace("'","")),
+                "language": profile[17].replace("'",""),
+                "unlockedPortraitBorders": loads(profile[18].replace("'","")),
+                "portraitBorder": profile[19],
+                "syncVersions": loads(profile[20].replace("'","")),
+                "otherPids": loads(profile[21].replace("'","")),
+                "mapHistory": loads(profile[22].replace("'","")),
+                "profileId": profileId,
+            }
+        return None
     
     def isProfileExists(self, userId = None):
         """
@@ -66,15 +61,13 @@ class DB:
 
         profileId = self.getUser(userId)["profileId"]
 
-        cursor = self.session.cursor()
-        cursor.execute(f'''SELECT * 
-                           FROM profiles 
-                           WHERE profileId={profileId};''')
-        check = cursor.fetchone()
-        cursor.close()
-
-        if check is None: return False
-        else: return True
+        with self.session:
+            self.cursor.execute(f'''SELECT * 
+                            FROM profiles;''')
+            checks = self.cursor.fetchall()
+        for check in checks:
+            if check[-1].replace("'","") == profileId: return True
+        return False
     
     def createProfile(self, userId = None, profile = None, xskuid = None):
         """
@@ -108,14 +101,11 @@ class DB:
             
             if value != lastValue: values += ","
 
-        cursor = self.session.cursor()
-        cursor.execute(f'''INSERT INTO profiles 
-                           ({','.join(list(profile.keys()))})
-                           VALUES ({values});''')
-        response = cursor.fetchone()
-        cursor.close()
-
-        return response
+        with self.session:
+            self.cursor.execute(f'''INSERT INTO profiles 
+                            ({','.join(list(profile.keys()))})
+                            VALUES ({values});''')
+            self.session.commit()
     
     def updateProfile(self, userId=None, profile=None):
         """
@@ -140,14 +130,11 @@ class DB:
 
             if value != lastValue: setinfo += ","
 
-        cursor = self.session.cursor()
-        cursor.execute(f'''UPDATE profiles
-                           SET {setinfo}
-                           WHERE profileId={profileId};''')
-        response = cursor.fetchone()
-        cursor.close()
-
-        return response
+        with self.session:
+            self.cursor.execute(f'''UPDATE profiles
+                            SET {setinfo}
+                            WHERE profileId={profileId};''')
+            self.session.commit()
     
     def getUser(self, userId = None):
         """
@@ -156,24 +143,25 @@ class DB:
 
         if userId is None: return None
 
-        cursor = self.session.cursor()
-        cursor.execute(f'''SELECT * 
-                           FROM user
-                           WHERE userId={userId};''')
-        userData = cursor.fetchone()
-        cursor.close()
+        with self.session:
+            self.cursor.execute(f'''SELECT * 
+                            FROM user
+                            WHERE userId={userId};''')
+            users = self.cursor.fetchone()
 
-        if userData is None: return None
-        else: return {
-            "userId": userData[0],
-            "profileId": userData[1],
-            "platformCode": userData[2],
-            userData[2]: {
-                "name": userData[3],
-                "email": userData[4]
-            },
-            "discordId": userData[5]
-        }
+        for user in users:
+            if user[0].replace("'","") == userId: return {
+                "userId": userId,
+                "profileId": user[1],
+                "platformCode": user[2],
+                user[2]: {
+                    "name": user[3],
+                    "email": user[4]
+                },
+                "discordId": user[5]
+            }
+
+        return None
 
     def createUser(self, userId = None,
                    name = None,
@@ -189,21 +177,18 @@ class DB:
         for xskuid_ in configuration.XSKU_IDS:
             if xskuid_["code"] == xskuid: break
 
-        cursor = self.session.cursor()
-        cursor.execute(f'''INSERT INTO users
-                           (userId,profileId,platformCode,name,email,discordId)
-                           VALUES (?,?,?,?,?,?);''', (
-                               userId,
-                               str(uuid4()),
-                               xskuid_["code"],
-                               name,
-                               email,
-                               discordId
-                           ))
-        response = cursor.fetchone()
-        cursor.close()
-
-        return response
+        with self.session:
+            self.cursor.execute(f'''INSERT INTO users
+                            (userId,profileId,platformCode,name,email,discordId)
+                            VALUES (?,?,?,?,?,?);''', (
+                                userId,
+                                str(uuid4()),
+                                xskuid_["code"],
+                                name,
+                                email,
+                                discordId
+                            ))
+            self.session.commit()
     
     def updateUser(self, userId = None, **kwargs):
         """
@@ -224,11 +209,8 @@ class DB:
 
             if value != lastValue: setinfo += ","
 
-        cursor = self.session.cursor()
-        cursor.execute(f'''UPDATE users
-                           SET {setinfo}
-                           WHERE userId={userId};''')
-        response = cursor.fetchone()
-        cursor.close()
-
-        return response
+        with self.session:
+            self.cursor.execute(f'''UPDATE users
+                            SET {setinfo}
+                            WHERE userId={userId};''')
+            self.session.commit()

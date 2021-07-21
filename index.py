@@ -8,7 +8,8 @@ from json import dumps
 DATABASE = DB(db=configuration.DB_PATH)
 APP = Flask(__name__)
 
-@APP.before_request
+#THIS WILL BE TEMPORARY OFFLINE 
+#@APP.before_request
 def before_request():
     try:
         if request.headers.get('User-Agent') in configuration.USER_AGENTS:
