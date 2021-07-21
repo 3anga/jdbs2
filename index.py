@@ -1,11 +1,11 @@
 import configuration
 from flask import Flask, request, abort
-from database import db
+from database import DB
 from jwt import decode, encode
 from time import time
 from json import dumps
 
-DATABASE = db(configuration.DB_PATH)
+DATABASE = DB(db=configuration.DB_PATH)
 APP = Flask(__name__)
 
 @APP.before_request
@@ -13,12 +13,13 @@ def before_request():
     try:
         if request.headers.get('User-Agent') in configuration.USER_AGENTS:
             decodedAuthorization = decode(request.headers.get('Authorization'), 
-                                        configuration.PUBLIC_KEY,
-                                        algorithm=configuration.JWT_ALGORITHM)
+                                         configuration.PUBLIC_KEY,
+                                         algorithm=configuration.JWT_ALGORITHM)
             if decodedAuthorization["banned"] == True or (time() *
-                                                        1000) > (decodedAuthorization["serverTime"] + 
-                                                                decodedAuthorization["expiresIn"]):
+                                                           1000) > (decodedAuthorization["serverTime"] + 
+                                                                    decodedAuthorization["expiresIn"]):
                 return abort(401)
+            request.headers["Authorization"] = decodedAuthorization
         else:
             return abort(401)
     except Exception:
@@ -32,9 +33,12 @@ def profiles():
             response.append(DATABASE.getProfile(pid))
         return dumps(response), 200, {"Content-Type": "application/json"}
     else:
-        #todo: make createprofile and updateprofile function
-        #      in db object from database.py
-        return {}
+        userId = request.headers["Authorization"]["userId"]
+        if DATABASE.isProfileExists(userId) == True:
+            DATABASE.updateProfile(userId, request.get_json())
+        else:
+            DATABASE.createProfile(userId, request.get_json())
+        return 200
 
 if __name__ == "__main__":
     APP.run()
