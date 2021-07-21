@@ -9,7 +9,7 @@ Mockup of Jean Michel Central Server, used for Just Dance Boost and written on P
 
 ### SQLite database
 
-## Contants
+## Contacts
 
 ### Discord server
 
