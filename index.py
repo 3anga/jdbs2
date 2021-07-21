@@ -1,11 +1,12 @@
 from flask.helpers import flash
 import configuration
 from flask import Flask, request, abort
-from sqlite3 import connect as db
+from database import db
 from jwt import decode, encode
 from time import time
+from json import dumps
 
-DATABASE_CONN = db(configuration.DB_PATH)
+DATABASE = db(configuration.DB_PATH)
 APP = Flask(__name__)
 
 @APP.before_request
@@ -25,7 +26,16 @@ def before_request():
 def index():
     return {
         "success": True
+    }, 200, {
+        "Status": "Good"
     }
+
+@APP.route('/profile/v2/profiles', methods=['GET', 'POST'])
+def profiles():
+    if request.method == 'GET':
+        response = []
+        ##needs to make db system
+        return dumps(response), 200, {"Content-Type": "application/json"}
 
 if __name__ == "__main__":
     APP.run()
