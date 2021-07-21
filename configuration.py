@@ -60,3 +60,7 @@ SPECIAL_SONGS = [{
 # Database
 
 DB_PATH = ''
+
+# User-Agents
+
+USER_AGENTS = []
