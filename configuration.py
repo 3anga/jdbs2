@@ -5,9 +5,15 @@ ENDPOINT_URL = ''
 ACCESS_ID = ''
 SECRET_KEY = ''
 
-# Sercet key
+# Key
+# You can generate this with ssh-keygen or this website (http://travistidwell.com/jsencrypt/demo)
 
-SECRET_KEY = b''
+PRIVATE_KEY = b''''''
+PUBLIC_KEY = b''''''
+
+# JWT settings
+
+JWT_ALGORITHM = "RS256"
 
 # WDF Rooms
 
@@ -50,3 +56,7 @@ SPECIAL_SONGS = [{
         "gameVersions": True
     }
 }]
+
+# Database
+
+DB_PATH = ''
