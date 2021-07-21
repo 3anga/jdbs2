@@ -5,7 +5,7 @@ Mockup of Jean Michel Central Server, used for Just Dance Boost and written on P
 
 ### Python >=3.7
 
-### DigitalOcean S3 Spaces or S3-compatible object storage (optional)
+### DigitalOcean S3 Spaces or S3-compatible object storage
 
 ### SQLite database
 
