@@ -1,11 +1,14 @@
 from flask import Flask, request
 from database import DB
 from json import dumps
-import configuration 
+import configuration
+from errors import errorResponse
+from decorators import authorization_required
 
 APP = Flask(__name__)
 
 @APP.route('/profile/v2/profiles', methods=['GET', 'POST'])
+@authorization_required
 def profile():
     if request.method == 'GET':
         DATABASE = DB(db=configuration.DB_PATH)
@@ -26,8 +29,7 @@ def profile():
     else:
         DATABASE = DB(db=configuration.DB_PATH)
 
-        #TODO: change to real data
-        USERID = 'd06b57e3-16a5-4828-b5a5-79de9e649841'
+        USERID = request.authorization["userId"]
 
         BODY = request.get_json()
         XSKUID = request.headers.get('X-SkuId')
