@@ -17,12 +17,15 @@ class DB:
     def __del__(self):
         self.session.close()
 
-    def getProfile(self, profileId = None):
+    def getProfile(self, userId = None):
         """
         Returns a profile from SQLite database
         """
 
-        if profileId is None: return None
+        if userId is None: return None
+
+        profileId = self.getUser(userId)["profileId"]
+
         with self.session:
             self.cursor.execute(f'''SELECT *
                                     FROM profiles;''')
@@ -64,8 +67,7 @@ class DB:
 
         if userId is None: return False
 
-        profileId = self.getUser(userId)["profileId"]
-        check = self.getProfile(profileId)
+        check = self.getProfile(userId)
 
         if check is None: return False
         return True
@@ -107,12 +109,10 @@ class DB:
                             VALUES ({values});''')
     
     def updateProfile(self, userId = None, profile = None, xskuid = None):
-        profileId = self.getUser(userId)["profileId"]
-
         for xskuid_ in configuration.XSKU_IDS:
             if xskuid_["code"] == xskuid: break
 
-        profile["syncVersions"] = self.getProfile(profileId)["syncVersions"]
+        profile["syncVersions"] = self.getProfile(userId)["syncVersions"]
         if xskuid_["gameVersion"] in list(profile["syncVersions"].keys()):
             profile["syncVersions"][xskuid_["gameVersion"]]["version"] += 1
             profile["syncVersions"][xskuid_["gameVersion"]]["timestamp"] = int(time() * 1000)
@@ -135,6 +135,8 @@ class DB:
                 setinfo += f"{str(value)}"
 
             if value != lastValue: setinfo += ","
+
+        profileId = self.getProfile(userId)["profileId"]
 
         with self.session:
             self.cursor.execute(f'''UPDATE profiles
@@ -217,4 +219,4 @@ class DB:
         with self.session:
             self.cursor.execute(f'''UPDATE users
                             SET {setinfo}
-                            WHERE userId={userId};''')
+                            WHERE userId='{userId}';''')
