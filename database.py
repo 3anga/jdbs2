@@ -233,32 +233,31 @@ class DB:
             SONGS = self.cursor.fetchall()
         
         for SONG in SONGS:
-            if SONG[10] in xskuid["unavailableSongs"] == False:
-                RESPONSE.append({
-                    'artist': SONG[0],
-                    'audioPreview': {
-                        'BPM': SONG[1],
-                        'Duration': SONG[2]
-                    },
-                    'coachCount': SONG[3],
-                    'credits': SONG[4],
-                    'difficulty': SONG[5],
-                    'isJDM': SONG[6],
-                    'jdmAttributes': SONG[7],
-                    'lyricsColor': f'{SONG[8]}FF',
-                    'mapLength': SONG[9],
-                    'mapName': SONG[10],
-                    'parentMapName': SONG[11],
-                    'originalJDVersion': SONG[12],
-                    'songColors': {
-                        'songColor_1A': f'{SONG[13]}FF',
-                        'songColor_2A': f'{SONG[14]}FF',
-                        'songColor_1B': f'{SONG[15]}FF',
-                        'songColor_2B': f'{SONG[16]}FF'
-                    },
-                    'sweatDifficulty': SONG[17],
-                    'tags': SONG[18].split(","),
-                    'title': SONG[19]
-                })
+            RESPONSE.append({
+                'artist': SONG[0],
+                'audioPreview': {
+                    'BPM': SONG[1],
+                    'Duration': SONG[2]
+                },
+                'coachCount': SONG[3],
+                'credits': SONG[4],
+                'difficulty': SONG[5],
+                'isJDM': SONG[6],
+                'jdmAttributes': SONG[7],
+                'lyricsColor': f'{SONG[8]}FF',
+                'mapLength': SONG[9],
+                'mapName': SONG[10],
+                'parentMapName': SONG[11],
+                'originalJDVersion': SONG[12],
+                'songColors': {
+                    'songColor_1A': f'{SONG[13]}FF',
+                    'songColor_2A': f'{SONG[14]}FF',
+                    'songColor_1B': f'{SONG[15]}FF',
+                    'songColor_2B': f'{SONG[16]}FF'
+                },
+                'sweatDifficulty': SONG[17],
+                'tags': SONG[18].split(","),
+                'title': SONG[19]
+            })
 
         return RESPONSE
